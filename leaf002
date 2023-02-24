@@ -1,0 +1,192 @@
+vxlan-cleaf002#show run
+Building configuration...
+
+Current configuration : 12506 bytes
+!
+! Last configuration change at 06:44:33 UTC Thu Feb 23 2023 by marc
+!
+version 17.10
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service call-home
+platform punt-keepalive disable-kernel-core
+!
+hostname vxlan-cleaf002
+!
+!
+vrf definition Mgmt-vrf
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+!
+aaa new-model
+!
+!
+aaa authorization exec default local
+!
+!
+aaa session-id common
+no process cpu extended history
+no process cpu autoprofile hog
+!
+!
+!
+ip routing
+!
+!
+!
+!
+!
+ip multicast-routing
+!
+ip dhcp pool webuidhcp
+!
+!
+!
+login on-success log
+!
+!
+!
+!
+!
+!
+!
+l2vpn evpn
+ replication-type static
+ router-id Loopback1
+!
+l2vpn evpn instance 600 vlan-based
+ encapsulation vxlan
+!
+
+license boot level network-advantage addon dna-advantage
+memory free low-watermark processor 180924
+!
+system mtu 8978
+diagnostic bootup level minimal
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+!
+!
+
+!
+!
+!
+!
+!
+vlan configuration 600
+ member evpn-instance 600 vni 6000
+!
+lldp run
+
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 22.22.22.22 255.255.255.255
+ ip pim sparse-mode
+!
+interface Loopback1
+ ip address 222.222.222.222 255.255.255.255
+ ip pim sparse-mode
+!
+interface GigabitEthernet0/0
+ vrf forwarding Mgmt-vrf
+ ip address 172.17.250.4 255.255.254.0
+ negotiation auto
+ no cdp enable
+!
+interface GigabitEthernet1/0/1
+ no cdp enable
+!
+interface GigabitEthernet1/0/2
+ no switchport
+ ip address 10.1.12.2 255.255.255.0
+ ip pim sparse-mode
+!
+interface GigabitEthernet1/0/3
+ no switchport
+ ip address 10.1.22.2 255.255.255.0
+ ip pim sparse-mode
+ no cdp enable
+!
+interface GigabitEthernet1/0/4
+ no cdp enable
+!
+interface GigabitEthernet1/0/5
+ no cdp enable
+!
+interface GigabitEthernet1/0/6
+ no cdp enable
+!
+interface GigabitEthernet1/0/7
+ no cdp enable
+!
+interface GigabitEthernet1/0/8
+ switchport access vlan 600
+ load-interval 30
+ no cdp enable
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+interface nve1
+ no ip address
+ source-interface Loopback1
+ host-reachability protocol bgp
+ member vni 6000 mcast-group 225.0.0.1
+!
+router bgp 400
+ bgp router-id 22.22.22.22
+ bgp log-neighbor-changes
+ neighbor 1.1.1.1 remote-as 200
+ neighbor 1.1.1.1 ebgp-multihop 255
+ neighbor 1.1.1.1 update-source Loopback0
+ neighbor 10.1.12.1 remote-as 200
+ neighbor 10.1.22.1 remote-as 200
+ !
+ address-family ipv4
+  redistribute connected
+  no neighbor 1.1.1.1 activate
+  neighbor 10.1.12.1 activate
+  neighbor 10.1.22.1 activate
+  maximum-paths eibgp 32
+ exit-address-family
+ !
+ address-family l2vpn evpn
+  neighbor 1.1.1.1 activate
+  neighbor 1.1.1.1 send-community extended
+ exit-address-family
+!
+ip forward-protocol nd
+ip tcp selective-ack
+ip tcp mss 1460
+ip tcp window-size 131072
+ip http server
+ip http authentication local
+ip http secure-server
+ip pim rp-address 1.1.1.1
+ip route vrf Mgmt-vrf 0.0.0.0 0.0.0.0 172.17.250.100
+ip ssh bulk-mode 131072
+ip ssh version 2
+!
+!
+!
+!
+!
+
+!
+!
+end
+
